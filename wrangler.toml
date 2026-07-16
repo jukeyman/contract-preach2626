@@ -1,0 +1,20 @@
+name = "contracting-preacher"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "out"
+
+[vars]
+AGENT_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+OPENAI_MODEL = "gpt-4o-mini"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "contracting_preacher_crm"
+database_id = "dba14308-749f-4bbf-b367-0249da7bf156"
+
+[[kv_namespaces]]
+binding = "FEDFUNDING_CACHE"
+id = "d874d9b122594f7c9bcb39a1d86da7ca"

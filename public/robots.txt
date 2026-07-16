@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://thecontractingpreacher.com/sitemap.xml
+
+# Disallow admin/API paths
+Disallow: /api/

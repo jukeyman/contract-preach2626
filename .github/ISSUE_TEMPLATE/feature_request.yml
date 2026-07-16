@@ -1,0 +1,29 @@
+name: Feature Request
+description: Request a product, CRM, portal, agent, or federal-data enhancement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Business outcome
+      description: What should this help Dr. McKnight, the team, or clients accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User story
+      placeholder: As a client/admin, I want...
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Pages, APIs, workflows, data sources, and acceptance criteria.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks or compliance concerns
+      description: Note legal, procurement, security, or source-verification concerns.
