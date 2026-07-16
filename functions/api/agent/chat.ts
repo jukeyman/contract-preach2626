@@ -69,7 +69,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   return json({
     source: 'ContractingPreacher AI Agent',
     live: Boolean(env.AI || env.OPENAI_API_KEY),
-    model: env.AGENT_MODEL || env.OPENAI_MODEL || '@cf/meta/llama-3.1-8b-instruct',
+    model: env.AGENT_MODEL || env.OPENAI_MODEL || '@cf/meta/llama-3.2-3b-instruct',
     checkedAt: new Date().toISOString(),
     answer,
     tools,
@@ -145,7 +145,7 @@ async function callLocalTool(request: Request, path: string, tool: string, label
 
 async function generateAgentAnswer(env: Env, messages: ChatMessage[], tools: ToolResult[]) {
   const toolSummary = summarizeTools(tools)
-  const model = env.AGENT_MODEL || env.OPENAI_MODEL || '@cf/meta/llama-3.1-8b-instruct'
+  const model = env.AGENT_MODEL || env.OPENAI_MODEL || '@cf/meta/llama-3.2-3b-instruct'
   const prompt = `${SYSTEM_PROMPT}
 
 Tool results:
