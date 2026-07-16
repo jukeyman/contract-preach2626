@@ -2,15 +2,21 @@ import { SITE_CONFIG, SERVICES, FAQS } from './constants'
 import type { Service, FAQ } from '@/types'
 
 export function generateOrganizationSchema() {
-  return {
-    '@context': 'https://schema.org',
+  const mainOrg = {
     '@type': 'ProfessionalService',
+    '@id': `${SITE_CONFIG.url}/#organization`,
     name: SITE_CONFIG.name,
     alternateName: 'The Contracting Preacher',
     description: SITE_CONFIG.description,
     url: SITE_CONFIG.url,
     telephone: SITE_CONFIG.phone,
     email: SITE_CONFIG.email,
+    logo: {
+      '@type': 'ImageObject',
+      '@id': `${SITE_CONFIG.url}/#logo`,
+      url: `${SITE_CONFIG.url}/images/og-image.png`,
+      caption: SITE_CONFIG.name,
+    },
     founder: {
       '@type': 'Person',
       name: SITE_CONFIG.founder,
@@ -26,6 +32,16 @@ export function generateOrganizationSchema() {
     },
     areaServed: [
       { '@type': 'Country', name: 'United States' },
+      { '@type': 'State', name: 'South Carolina' },
+      { '@type': 'State', name: 'North Carolina' },
+      { '@type': 'State', name: 'Florida' },
+      { '@type': 'State', name: 'Georgia' },
+      { '@type': 'State', name: 'Virginia' },
+      { '@type': 'State', name: 'New York' },
+      { '@type': 'State', name: 'Nevada' },
+      { '@type': 'State', name: 'Illinois' },
+      { '@type': 'State', name: 'District of Columbia' },
+      { '@type': 'State', name: 'Puerto Rico' },
     ],
     serviceType: [
       'Federal Contracting Consulting',
@@ -36,7 +52,7 @@ export function generateOrganizationSchema() {
       'WOSB Certification',
       'SDVOSB Certification',
     ],
-    priceRange: '$$-$$$',
+    priceRange: '$$',
     openingHoursSpecification: [
       {
         '@type': 'OpeningHoursSpecification',
@@ -59,7 +75,33 @@ export function generateOrganizationSchema() {
       worstRating: '1',
     },
   }
+
+  const subLocations = SITE_CONFIG.offices.map((office, idx) => ({
+    '@type': 'ProfessionalService',
+    '@id': `${SITE_CONFIG.url}/#office-${idx}`,
+    parentOrganization: { '@id': `${SITE_CONFIG.url}/#organization` },
+    name: `${SITE_CONFIG.name} — ${office.city} Office`,
+    description: `Official regional office of Dr. McKnight — The Contracting Preacher — in ${office.city}, ${office.state} serving small businesses and federal contractors.`,
+    url: `${SITE_CONFIG.url}/contact`,
+    telephone: SITE_CONFIG.phone,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: office.address,
+      addressLocality: office.city,
+      addressRegion: office.state,
+      postalCode: office.zip,
+      addressCountry: 'US',
+    },
+    areaServed: { '@type': 'State', name: office.state },
+    priceRange: '$$',
+  }))
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [mainOrg, ...subLocations],
+  }
 }
+
 
 export function generateServiceSchema(service: Service) {
   return {
