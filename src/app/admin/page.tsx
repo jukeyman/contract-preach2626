@@ -12,6 +12,7 @@ import {
   Search,
   ShieldCheck,
   Users,
+  Bot,
 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { CRM_PIPELINE_STAGES, FEDERAL_FUNDING_SOURCES } from '@/lib/fedfunding'
@@ -123,10 +124,16 @@ export default function AdminPage() {
               Intake queue, readiness scoring, opportunity search, and weekly pipeline operating view.
             </p>
           </div>
-          <Link href="/intake" className="btn-primary">
-            Add Client
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
+          <div className="flex flex-wrap gap-4 shrink-0">
+            <Link href="/agent" className="bg-brand-gold text-brand-navy hover:bg-brand-lightGold px-6 py-3 rounded-lg font-accent font-bold transition-all inline-flex items-center">
+              AI Agent Workspace
+              <Bot className="ml-2 h-5 w-5" />
+            </Link>
+            <Link href="/intake" className="btn-primary">
+              Add Client
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </div>
         </div>
       </section>
 

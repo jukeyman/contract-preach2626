@@ -104,6 +104,30 @@ const quickPrompts = [
 ]
 
 export default function AgentPage() {
+  const [accessCode, setAccessCode] = useState('')
+  const [isUnlocked, setIsUnlocked] = useState(false)
+  const [unlockError, setUnlockError] = useState('')
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('tcp-admin-code') || ''
+    if (saved === 'mcknight1') {
+      setIsUnlocked(true)
+    }
+  }, [])
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (accessCode.trim() === 'mcknight1') {
+      window.localStorage.setItem('tcp-admin-code', accessCode.trim())
+      setIsUnlocked(true)
+      setUnlockError('')
+      toast.success('AI Command Center successfully unlocked.')
+    } else {
+      setUnlockError('Invalid admin access code.')
+      toast.error('Invalid admin access code.')
+    }
+  }
+
   const [activeTab, setActiveTab] = useState<'chat' | 'draftsman' | 'auditor' | 'finder' | 'intel'>('chat')
   
   // Tab 1: Chat States
@@ -159,8 +183,10 @@ export default function AgentPage() {
 
   // Fetch initial audit on mount
   useEffect(() => {
-    runAudit()
-  }, [])
+    if (isUnlocked) {
+      runAudit()
+    }
+  }, [isUnlocked])
 
   // Send message API trigger
   const sendChatMessage = async (event?: React.FormEvent<HTMLFormElement>, preset?: string) => {
@@ -961,6 +987,85 @@ export default function AgentPage() {
   const toggleCert = (cert: string) => {
     setSelectedCerts(prev =>
       prev.includes(cert) ? prev.filter(c => c !== cert) : [...prev, cert]
+    )
+  }
+
+  if (!isUnlocked) {
+    return (
+      <div className="min-h-screen bg-brand-navy flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden">
+        {/* Abstract background decorative blobs to make it feel extremely premium */}
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-brand-gold opacity-10 filter blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-brand-gold opacity-5 filter blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-md w-full relative z-10">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center p-4 bg-brand-cream text-brand-gold rounded-2xl mb-4 border border-brand-lightGold/20 shadow-xl">
+              <Bot className="h-10 w-10 text-brand-darkGold" />
+            </div>
+            <h1 className="font-accent text-3xl font-bold tracking-tight text-white">
+              Command Center
+            </h1>
+            <p className="mt-2 text-sm text-gray-300 font-medium max-w-xs mx-auto">
+              Federal contracting, grant registries, proposal drafting tools, and readiness analysis.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-8 shadow-2xl text-white">
+            <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+              <div className="p-2 bg-[#FFF8E7]/10 text-brand-gold rounded-lg">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div className="text-left">
+                <h2 className="text-sm font-bold tracking-wide uppercase text-brand-gold">Access Restricted</h2>
+                <p className="text-xs text-gray-400">Authenticated staff session required</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleUnlock} className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2 text-left">
+                  Admin Access Code
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={accessCode}
+                    onChange={(e) => setAccessCode(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-white/10 border border-white/20 text-white rounded-xl py-3 px-4 outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold transition-all text-center tracking-widest font-mono placeholder:text-gray-500 text-lg"
+                    autoFocus
+                  />
+                </div>
+                {unlockError && (
+                  <p className="mt-2 text-xs text-red-400 font-bold flex items-center gap-1.5 justify-center">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    {unlockError}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-brand-gold text-brand-navy hover:bg-brand-lightGold py-3.5 rounded-xl font-accent font-bold tracking-wide transition-all shadow-lg flex items-center justify-center gap-2 border border-brand-lightGold"
+              >
+                Authenticate Command Center
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
+
+          <div className="text-center mt-8 space-y-2">
+            <p className="text-xs text-gray-400">
+              Only authorized operators of Contracting Preacher may enter.
+            </p>
+            <p className="text-xs">
+              <Link href="/admin" className="text-brand-gold hover:underline font-bold">
+                Return to Admin CRM
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
     )
   }
 
