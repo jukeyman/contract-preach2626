@@ -28,7 +28,8 @@ import {
   Building,
   MapPin,
   Calendar,
-  DollarSign
+  DollarSign,
+  Download
 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { toast } from 'sonner'
@@ -342,6 +343,620 @@ export default function AgentPage() {
     toast.success('Proposal copied to clipboard!')
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Export proposal draft to premium PDF format
+  const handleExportPDF = () => {
+    if (!draftResult) return;
+
+    const parseMarkdownToHtml = (md: string) => {
+      return md
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .split('\n')
+        .map(line => {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('# ')) {
+            return `<h1>${trimmed.slice(2)}</h1>`;
+          } else if (trimmed.startsWith('## ')) {
+            return `<h2>${trimmed.slice(3)}</h2>`;
+          } else if (trimmed.startsWith('### ')) {
+            return `<h3>${trimmed.slice(4)}</h3>`;
+          } else if (trimmed.startsWith('#### ')) {
+            return `<h4>${trimmed.slice(5)}</h4>`;
+          } else if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+            return `<li>${trimmed.slice(2)}</li>`;
+          } else if (trimmed === '---') {
+            return `<hr />`;
+          } else if (trimmed === '') {
+            return `<br />`;
+          }
+          return `<p>${line}</p>`;
+        })
+        .join('\n');
+    };
+
+    const parsedContent = parseMarkdownToHtml(draftResult);
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Please allow popups to export PDFs.');
+      return;
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Federal Bid Proposal Draft</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+          
+          @page {
+            size: letter;
+            margin: 20mm;
+          }
+          
+          body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1E293B;
+            background: #ffffff;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .header {
+            border-bottom: 2px solid #C5A880;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+          }
+          
+          .brand-title {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+          }
+          
+          .brand-slogan {
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 4px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          
+          .meta-info {
+            text-align: right;
+            font-size: 10px;
+            color: #64748B;
+            font-weight: 500;
+            line-height: 1.4;
+          }
+          
+          .document-title {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
+          }
+          
+          .document-subtitle {
+            color: #C5A880;
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          
+          h1 {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 35px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 6px;
+            page-break-after: avoid;
+          }
+          
+          h2 {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            page-break-after: avoid;
+          }
+          
+          h3, h4 {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            page-break-after: avoid;
+          }
+          
+          p {
+            font-size: 11px;
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #334155;
+            text-align: justify;
+          }
+          
+          li {
+            font-size: 11px;
+            margin-bottom: 6px;
+            color: #334155;
+          }
+          
+          ul {
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-left: 20px;
+          }
+          
+          hr {
+            border: 0;
+            border-top: 1px solid #E2E8F0;
+            margin: 25px 0;
+          }
+          
+          .footer {
+            margin-top: 50px;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+            color: #94A3B8;
+            font-weight: 500;
+            page-break-inside: avoid;
+          }
+          
+          .legal-disclaimer {
+            margin-top: 30px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 9px;
+            color: #64748B;
+            line-height: 1.5;
+            page-break-inside: avoid;
+          }
+          
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="brand-title">THE CONTRACTING PREACHER</div>
+            <div class="brand-slogan">Empowering Businesses, Restoring Futures</div>
+          </div>
+          <div class="meta-info">
+            RJ Business Solutions Division<br />
+            15 Offices Nationwide<br />
+            Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </div>
+        </div>
+        
+        <div class="document-title">FEDERAL BID PROPOSAL DRAFT</div>
+        <div class="document-subtitle">Official Proposal Technical Draft</div>
+        
+        <div class="content">
+          ${parsedContent}
+        </div>
+        
+        <div class="legal-disclaimer">
+          <strong>Important Advisory & Regulatory Disclosure:</strong> This document is a strategic draft and technical compliance proposal prepared by The Contracting Preacher (a business development advisory division of RJ Business Solutions). The Contracting Preacher is an independent business development consulting firm. We are not a procurement officer, contracting agency, or representative of the United States Government. While this document was structured utilizing federal parameters, SBA compliance maps, and historical FAR templates, winning bid outcomes cannot be legally guaranteed. It is the sole responsibility of the client to review, verify, sign, and submit all final bids.
+        </div>
+        
+        <div class="footer">
+          <div>Integrity and Excellence in Action.</div>
+          <div>Page 1 of 1</div>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  // Export compliance audit report to premium PDF format
+  const handleExportAuditPDF = () => {
+    if (!auditResult) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Please allow popups to export PDFs.');
+      return;
+    }
+
+    const itemsHtml = auditResult.items.map(item => `
+      <div class="audit-item ${item.status}">
+        <div class="audit-item-header">
+          <span class="audit-item-label">${item.label}</span>
+          <span class="audit-item-status-badge ${item.status}">${item.status.toUpperCase()}</span>
+        </div>
+        <div class="audit-item-score">Score: ${item.points} / ${item.maxPoints} pts</div>
+        <div class="audit-item-desc">${item.description}</div>
+      </div>
+    `).join('');
+
+    const mitigationsHtml = auditResult.mitigations.map(mit => `
+      <li class="mitigation-item">${mit}</li>
+    `).join('');
+
+    const scoreColor = auditResult.score >= 80 ? '#10B981' : auditResult.score >= 50 ? '#F59E0B' : '#EF4444';
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Compliance Audit Report - ${auditCompany}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+          
+          @page {
+            size: letter;
+            margin: 20mm;
+          }
+          
+          body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1E293B;
+            background: #ffffff;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .header {
+            border-bottom: 2px solid #C5A880;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+          }
+          
+          .brand-title {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+          }
+          
+          .brand-slogan {
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 4px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          
+          .meta-info {
+            text-align: right;
+            font-size: 10px;
+            color: #64748B;
+            font-weight: 500;
+            line-height: 1.4;
+          }
+          
+          .document-title {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 5px 0;
+            letter-spacing: -0.5px;
+          }
+          
+          .document-subtitle {
+            color: #C5A880;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 0 0 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          
+          .meta-grid {
+            display: grid;
+            grid-template-cols: 1fr 1fr;
+            gap: 15px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            font-size: 11px;
+          }
+          
+          .meta-cell strong {
+            color: #0A192F;
+          }
+          
+          .score-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 35px;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px dashed #C5A880;
+            background: #FFF8E7;
+          }
+          
+          .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 8px solid ${scoreColor};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0A192F;
+          }
+          
+          .score-text h3 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 16px;
+            font-weight: 700;
+          }
+          
+          .score-text p {
+            margin: 5px 0 0 0;
+            font-size: 11px;
+            color: #64748B;
+          }
+          
+          h2 {
+            font-family: 'Outfit', sans-serif;
+            color: #0A192F;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 6px;
+            page-break-after: avoid;
+          }
+          
+          .audit-item {
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            background: #FAFAFA;
+            page-break-inside: avoid;
+          }
+          
+          .audit-item.pass {
+            border-left: 4px solid #10B981;
+          }
+          
+          .audit-item.warning {
+            border-left: 4px solid #F59E0B;
+          }
+          
+          .audit-item.fail {
+            border-left: 4px solid #EF4444;
+          }
+          
+          .audit-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          
+          .audit-item-label {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: #0A192F;
+            font-size: 13px;
+          }
+          
+          .audit-item-status-badge {
+            font-size: 8px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+          }
+          
+          .audit-item-status-badge.pass {
+            background: #D1FAE5;
+            color: #065F46;
+          }
+          
+          .audit-item-status-badge.warning {
+            background: #FEF3C7;
+            color: #92400E;
+          }
+          
+          .audit-item-status-badge.fail {
+            background: #FEE2E2;
+            color: #991B1B;
+          }
+          
+          .audit-item-score {
+            font-size: 10px;
+            color: #64748B;
+            font-weight: 600;
+            margin: 4px 0;
+          }
+          
+          .audit-item-desc {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 6px;
+          }
+          
+          .mitigation-list {
+            margin-top: 15px;
+            padding-left: 20px;
+          }
+          
+          .mitigation-item {
+            font-size: 11px;
+            color: #334155;
+            margin-bottom: 8px;
+          }
+          
+          .legal-disclaimer {
+            margin-top: 35px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 9px;
+            color: #64748B;
+            line-height: 1.5;
+            page-break-inside: avoid;
+          }
+          
+          .footer {
+            margin-top: 50px;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+            color: #94A3B8;
+            font-weight: 500;
+            page-break-inside: avoid;
+          }
+          
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="brand-title">THE CONTRACTING PREACHER</div>
+            <div class="brand-slogan">Empowering Businesses, Restoring Futures</div>
+          </div>
+          <div class="meta-info">
+            RJ Business Solutions Division<br />
+            15 Offices Nationwide<br />
+            Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </div>
+        </div>
+        
+        <div class="document-title">FEDERAL COMPLIANCE AUDIT REPORT</div>
+        <div class="document-subtitle">SBA SET-ASIDE & SAM.GOV STATUS REPORT</div>
+        
+        <div class="meta-grid">
+          <div class="meta-cell">
+            <strong>Company Legal Name:</strong> ${auditCompany}<br />
+            <strong>SAM.gov UEI:</strong> ${auditUei || 'Not Registered'}<br />
+            <strong>Primary NAICS:</strong> ${auditNaics}
+          </div>
+          <div class="meta-cell">
+            <strong>Selected Certifications:</strong> ${selectedCerts.map(c => c.toUpperCase()).join(', ') || 'None'}<br />
+            <strong>Audit Engine:</strong> ContractingPreacher AI v9.0<br />
+            <strong>Evaluation Type:</strong> RFP Pre-Award Compliance
+          </div>
+        </div>
+        
+        <div class="score-section">
+          <div class="score-circle">${auditResult.score}%</div>
+          <div class="score-text">
+            <h3>Audit Compliance Grade: ${
+              auditResult.score >= 80 
+                ? 'EXCELLENT (Audit Passed)' 
+                : auditResult.score >= 50 
+                ? 'WARNING (Hurdles Detected)' 
+                : 'FAIL (Critical Deficiencies)'
+            }</h3>
+            <p>Score reflects matching of client socio-economic certification tags against SAM database registration standards.</p>
+          </div>
+        </div>
+        
+        <h2>Compliance Check Findings</h2>
+        <div class="audit-items">
+          ${itemsHtml}
+        </div>
+        
+        <h2>Required Corrective Actions</h2>
+        <ul class="mitigation-list">
+          ${mitigationsHtml}
+        </ul>
+        
+        <div class="legal-disclaimer">
+          <strong>Important Advisory & Regulatory Disclosure:</strong> This document is a compliance audit report prepared by The Contracting Preacher (a business development advisory division of RJ Business Solutions). The Contracting Preacher is an independent business development consulting firm. We are not a procurement officer, contracting agency, or representative of the United States Government. While this document was structured utilizing federal parameters, SBA compliance maps, and historical FAR templates, winning bid outcomes cannot be legally guaranteed. It is the sole responsibility of the client to review, verify, sign, and submit all final bids.
+        </div>
+        
+        <div class="footer">
+          <div>Integrity and Excellence in Action.</div>
+          <div>Page 1 of 1</div>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
 
   const toggleCert = (cert: string) => {
     setSelectedCerts(prev =>
@@ -720,13 +1335,22 @@ export default function AgentPage() {
                   <p className="text-[10px] text-gray-500 font-medium">Standard Federal-Approved Markdown Structure</p>
                 </div>
                 {draftResult && (
-                  <button
-                    onClick={handleCopyDraft}
-                    className="rounded-lg bg-brand-navy/5 text-brand-navy px-3 py-1.5 text-xs font-bold hover:bg-brand-navy hover:text-white transition-all flex items-center gap-1"
-                  >
-                    {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Clipboard className="h-3.5 w-3.5" />}
-                    {copied ? 'Copied' : 'Copy to Clipboard'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCopyDraft}
+                      className="rounded-lg bg-brand-navy/5 text-brand-navy px-3 py-1.5 text-xs font-bold hover:bg-brand-navy hover:text-white transition-all flex items-center gap-1"
+                    >
+                      {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Clipboard className="h-3.5 w-3.5" />}
+                      {copied ? 'Copied' : 'Copy to Clipboard'}
+                    </button>
+                    <button
+                      onClick={handleExportPDF}
+                      className="rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Export PDF
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -758,7 +1382,16 @@ export default function AgentPage() {
                     <h2 className="text-base font-bold text-brand-navy">Federal Bid Compliance Audit</h2>
                     <p className="text-[11px] text-gray-500 mt-0.5">SBA set-aside verification and SAM.gov structural status reports.</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
+                    {auditResult && (
+                      <button
+                        onClick={handleExportAuditPDF}
+                        className="rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 px-3 py-1 text-xs font-bold transition-all flex items-center gap-1.5"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Export Audit PDF
+                      </button>
+                    )}
                     <span className="text-[10px] font-bold text-gray-400">Entity:</span>
                     <span className="px-2.5 py-1 bg-[#FFF8E7] text-brand-navy text-[11px] font-bold rounded-full border border-brand-gold/20">{auditCompany}</span>
                   </div>
